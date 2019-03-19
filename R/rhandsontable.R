@@ -784,6 +784,7 @@ renderRHandsontable <- function(expr, env = parent.frame(), quoted = FALSE) {
   htmlwidgets::shinyRenderWidget(expr, rHandsontableOutput, env, quoted = TRUE)
 }
 
+
 #' Handsontable widget
 #'
 #' Convert handsontable data to R object. Can be used in a \code{shiny} app

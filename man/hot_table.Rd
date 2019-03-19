@@ -15,10 +15,9 @@ hot_table(hot, contextMenu = TRUE, stretchH = "none",
 \item{contextMenu}{logical enabling the right-click menu}
 
 \item{stretchH}{character describing column stretching. Options are 'all', 'right',
-and 'none'. See \href{http://docs.handsontable.com/0.16.1/demo-stretching.html}{Column stretching} for details.}
+and 'none'}
 
-\item{customBorders}{json object. See
-\href{http://handsontable.com/demo/custom_borders.html}{Custom borders} for details.}
+\item{customBorders}{json object}
 
 \item{highlightRow}{logical enabling row highlighting for the selected
 cell}
@@ -34,6 +33,8 @@ auto (default), hidden and visible}
 \item{rowHeaderWidth}{numeric width (in px) for the rowHeader column}
 
 \item{...}{passed to \href{http://handsontable.com}{Handsontable.js} constructor}
+
+\item{maxRows}{integer setting the maximum number of rows. If set to a value lower than the initial row count, the data will be trimmed to the provided value as the number of rows}
 }
 \description{
 Configure table.  See
