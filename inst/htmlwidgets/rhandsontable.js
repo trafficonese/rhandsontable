@@ -1,1 +1,250 @@
-function toArray(t){return t.map(function(t){return Object.keys(t).map(function(e){return t[e]})})}function csvString(t,e,a){for(var n=t.getColHeader(),r=n.join(e)+"\n",s=0;s<t.countRows();s++){var o=[];for(var i in n){var h=t.propToCol(i),l=t.getDataAtRowProp(s,h);isNaN(l)||(l=l.toString().replace(".",a)),o.push(l)}r+=o.join(e),r+="\n"}return r}function customRenderer(t,e,a,n,r,s,o){["date","handsontable","dropdown"].indexOf(o.type)>-1?type="autocomplete":type=o.type,Handsontable.renderers.getRenderer(type)(t,e,a,n,r,s,o)}function strip_tags(t,e){return e=(((e||"")+"").toLowerCase().match(/<[a-z][a-z0-9]*>/g)||[]).join(""),t.replace(/<!--[\s\S]*?-->|<\?(?:php)?[\s\S]*?\?>/gi,"").replace(/<\/?([a-z][a-z0-9]*)\b[^>]*>/gi,function(t,a){return e.indexOf("<"+a.toLowerCase()+">")>-1?t:""})}function safeHtmlRenderer(t,e,a,n,r,s,o){var i=Handsontable.helper.stringify(s);return t.getSettings().allowedTags?tags=t.getSettings().allowedTags:tags="<em><b><strong><a><big>",i=strip_tags(i,tags),e.innerHTML=i,e}HTMLWidgets.widget({name:"rhandsontable",type:"output",params:null,initialize:function(t,e,a){return{}},renderValue:function(t,e,a){e.data.length>0&&e.data[0].constructor===Array?e.data=e.data:e.data=toArray(e.data.map(function(t){return e.rColnames.map(function(e){return t[e]})})),e.overflow&&$("#"+t.id).css("overflow",e.overflow),e.rowHeaderWidth&&$("#"+t.id).css("col.rowHeader",e.rowHeaderWidth+"px"),this.params=e,a.hot?(a.hot.params=e,a.hot.updateSettings(e)):(a.hot=new Handsontable(t,e),this.afterChangeCallback(e),this.afterCellMetaCallback(e),this.afterRowAndColChange(e),e.selectCallback&&this.afterSelectCallback(e),a.hot.params=e,a.hot.updateSettings(e))},resize:function(t,e,a,n){},afterRender:function(t){t.afterRender=function(t){var e=this.getPlugin("autoColumnSize");if(e.isEnabled()&&this.params){e.widths;for(var a=0,n=this.countCols();a<n;a++)this.params.columns&&"customRenderer"!=this.params.columns[a].renderer.name&&e.calculateColumnsWidth(a,300,!0)}}},afterChangeCallback:function(t){t.afterChange=function(t,e){HTMLWidgets.shinyMode&&(!t||null===t[0][2]&&null===t[0][3]?"loadData"==e&&this.params&&Shiny.onInputChange(this.rootElement.id,{data:this.getData(),changes:{event:"afterChange",changes:null},params:this.params}):(this.sortIndex&&0!==this.sortIndex.length?c=[this.sortIndex[t[0][0]][0],t[0].slice(1,4)]:c=t,Shiny.onInputChange(this.rootElement.id,{data:this.getData(),changes:{event:"afterChange",changes:c,source:e},params:this.params})))},t.afterLoadData=function(t){},t.afterChangesObserved=function(t){},t.afterInit=function(){}},afterCellMetaCallback:function(t){t.afterSetCellMeta=function(t,e,a,n){HTMLWidgets.shinyMode&&"comment"===a&&Shiny.onInputChange(this.rootElement.id+"_comment",{data:this.getData(),comment:{r:t+1,c:e+1,key:a,val:n},params:this.params})}},afterSelectCallback:function(t){t.afterSelectionEnd=function(t,e,a,n){var r=[],s=[];if(HTMLWidgets.shinyMode){a<t&&(a=[t,t=a][0]);for(var o=t;o<=a;o++)r.push(this.toPhysicalRow(o)+1);n<e&&(n=[e,e=n][0]);for(var i=e;i<=n;i++)s.push(this.toPhysicalColumn(i)+1);Shiny.onInputChange(this.rootElement.id+"_select:rhandsontable.customSelectDeserializer",{data:this.getData(),select:{r:t+1,c:e+1,r2:a+1,c2:n+1,rAll:r,cAll:s},params:this.params})}}},afterRowAndColChange:function(t){t.afterCreateRow=function(t,e){if(HTMLWidgets.shinyMode){if(this.params&&this.params.columns)for(var a=0,n=this.countCols();a<n;a++)this.setDataAtCell(t,a,this.params.columns[a].default);Shiny.onInputChange(this.rootElement.id,{data:this.getData(),changes:{event:"afterCreateRow",ind:t,ct:e},params:this.params})}},t.afterRemoveRow=function(t,e){HTMLWidgets.shinyMode&&Shiny.onInputChange(this.rootElement.id,{data:this.getData(),changes:{event:"afterRemoveRow",ind:t,ct:e},params:this.params})},t.afterCreateCol=function(t,e){HTMLWidgets.shinyMode&&Shiny.onInputChange(this.rootElement.id,{data:this.getData(),changes:{event:"afterCreateCol",ind:t,ct:e},params:this.params})},t.afterRemoveCol=function(t,e){HTMLWidgets.shinyMode&&Shiny.onInputChange(this.rootElement.id,{data:this.getData(),changes:{event:"afterRemoveCol",ind:t,ct:e},params:this.params})}}});
+HTMLWidgets.widget({
+  name: 'rhandsontable',
+  type: 'output',
+  params: null,
+  initialize: function(el, width, height) {
+    return {};
+  },
+
+  renderValue: function(el, x, instance) {
+    if (x.data.length > 0 && x.data[0].constructor === Array) {
+      x.data = x.data;
+    } else {
+      x.data = toArray(x.data.map(function(d) {
+        return x.rColnames.map(function(ky) {
+          return d[ky];
+        });
+      }));
+    }
+
+    if (x.overflow) {
+      $("#" + el.id).css('overflow', x.overflow);
+    }
+
+    if (x.rowHeaderWidth) {
+      $("#" + el.id).css('col.rowHeader', x.rowHeaderWidth + 'px');
+    }
+
+    this.params = x;
+
+    if (instance.hot) {
+      instance.hot.params = x;
+      instance.hot.updateSettings(x);
+    } else {
+      instance.hot = new Handsontable(el, x);
+      this.afterChangeCallback(x);
+      this.afterCellMetaCallback(x);
+      this.afterRowAndColChange(x);
+      if (x.selectCallback) {
+        this.afterSelectCallback(x);
+      }
+      instance.hot.params = x;
+      instance.hot.updateSettings(x);
+    }
+  },
+
+  resize: function(el, width, height, instance) {
+      //console.log("rhandsontable is resized");
+      //console.log("width");
+      //console.log(width);
+      //console.log("height");
+      //console.log(height);
+  },
+
+  afterRender: function(x) {
+    x.afterRender = function(isForced) {
+      var plugin = this.getPlugin('autoColumnSize');
+      if (plugin.isEnabled() && this.params) {
+        var wdths = plugin.widths;
+        for(var i = 0, colCount = this.countCols(); i < colCount ; i++) {
+          if (this.params.columns && this.params.columns[i].renderer.name != "customRenderer") {
+            plugin.calculateColumnsWidth(i, 300, true);
+          }
+        }
+      }
+    };
+  },
+
+  afterChangeCallback: function(x) {
+    x.afterChange = function(changes, source) {
+      if (HTMLWidgets.shinyMode) {
+        if (changes && (changes[0][2] !== null || changes[0][3] !== null)) {
+          if (this.sortIndex && this.sortIndex.length !== 0) {
+            c = [this.sortIndex[changes[0][0]][0], changes[0].slice(1, 1 + 3)];
+          } else {
+            c = changes;
+          }
+          Shiny.onInputChange(this.rootElement.id, {
+            data: this.getData(),
+            changes: { event: "afterChange", changes: c, source: source },
+            params: this.params
+          });
+        } else if (source == "loadData" && this.params) {
+          Shiny.onInputChange(this.rootElement.id, {
+            data: this.getData(),
+            changes: { event: "afterChange", changes: null },
+            params: this.params
+          });
+        }
+      }
+    };
+
+    // Used with editable tables. Is emitted after something is pasted in the table
+    x.afterPaste = function(data, coords) {
+      //rhandsontable.getData()[startRow][startCol]
+      //console.log(this.getData()[coords[0].startRow][coords[0].startCol]);
+      var obj = {
+        startrow: coords[0].startRow+1,
+        endrow: coords[0].endRow+1,
+        startcol: coords[0].startCol+1,
+        endcol: coords[0].endCol+1,
+        vals: data
+      };
+
+      Shiny.setInputValue(this.rootElement.id+"_pasted", obj);
+    };
+  },
+
+  afterCellMetaCallback: function(x) {
+    x.afterSetCellMeta = function(r, c, key, val) {
+      if (HTMLWidgets.shinyMode && key === "comment") {
+        Shiny.onInputChange(this.rootElement.id + "_comment", {
+          data: this.getData(),
+          comment: { r: r + 1, c: c + 1, key: key, val: val},
+          params: this.params
+        });
+      }
+    };
+  },
+
+  afterSelectCallback: function(x) {
+    x.afterSelectionEnd = function(r, c, r2, c2) {
+      var r_all = [];
+      var c_all = [];
+      if (HTMLWidgets.shinyMode) {
+        if ( r2 < r ) { r2 = [r, r = r2][0]; }
+        for ( var i=r; i <= r2; i++ ) {
+          r_all.push( this.toPhysicalRow(i) + 1 );
+        }
+        if ( c2 < c ) { c2 = [c, c = c2][0]; }
+        for ( var ii=c; ii <= c2; ii++ ) {
+          c_all.push( this.toPhysicalColumn(ii) + 1 );
+        }
+        Shiny.onInputChange(this.rootElement.id + "_select:rhandsontable.customSelectDeserializer", {
+          data: this.getData(),
+          select: { r: r + 1,
+                    c: c + 1,
+                    r2: r2 + 1,
+                    c2: c2 + 1,
+                    rAll: r_all,
+                    cAll: c_all },
+          params: this.params
+        });
+      }
+    };
+  },
+
+  afterRowAndColChange: function(x) {
+    x.afterCreateRow = function(ind, ct) {
+      if (HTMLWidgets.shinyMode) {
+        if (this.params && this.params.columns) {
+          for(var i = 0, colCount = this.countCols(); i < colCount ; i++) {
+            this.setDataAtCell(ind, i, this.params.columns[i].default);
+          }
+        }
+        Shiny.onInputChange(this.rootElement.id, {
+          data: this.getData(),
+          changes: { event: "afterCreateRow", ind: ind, ct: ct },
+          params: this.params
+        });
+      }
+    };
+
+    x.afterRemoveRow = function(ind, ct) {
+      if (HTMLWidgets.shinyMode)
+        Shiny.onInputChange(this.rootElement.id, {
+          data: this.getData(),
+          changes: { event: "afterRemoveRow", ind: ind, ct: ct },
+          params: this.params
+        });
+    };
+
+    x.afterCreateCol = function(ind, ct) {
+      if (HTMLWidgets.shinyMode)
+        Shiny.onInputChange(this.rootElement.id, {
+          data: this.getData(),
+          changes: { event: "afterCreateCol", ind: ind, ct: ct },
+          params: this.params
+        });
+    };
+
+    x.afterRemoveCol = function(ind, ct) {
+      if (HTMLWidgets.shinyMode)
+        Shiny.onInputChange(this.rootElement.id, {
+          data: this.getData(),
+          changes: { event: "afterRemoveCol", ind: ind, ct: ct },
+          params: this.params
+        });
+    };
+  }
+});
+
+
+// https://stackoverflow.com/questions/22477612/converting-array-of-objects-into-array-of-arrays
+function toArray(input) {
+  var result = input.map(function(obj) {
+    return Object.keys(obj).map(function(key) {
+      return obj[key];
+    });
+  });
+  return result;
+}
+
+function csvString(instance, sep, dec) {
+  var headers = instance.getColHeader();
+  var csv = headers.join(sep) + "\n";
+  for (var i = 0; i < instance.countRows(); i++) {
+      var row = [];
+      for (var h in headers) {
+          var col = instance.propToCol(h);
+          var value = instance.getDataAtRowProp(i, col);
+          if ( !isNaN(value) ) {
+            value = value.toString().replace(".", dec);
+          }
+          row.push(value);
+      }
+      csv += row.join(sep);
+      csv += "\n";
+  }
+  return csv;
+}
+
+function customRenderer(instance, TD, row, col, prop, value, cellProperties) {
+    if (['date', 'handsontable', 'dropdown'].indexOf(cellProperties.type) > -1) {
+      type = 'autocomplete';
+    } else {
+      type = cellProperties.type;
+    }
+    Handsontable.renderers.getRenderer(type)(instance, TD, row, col, prop, value, cellProperties);
+}
+
+function strip_tags(input, allowed) {
+  var tags = /<\/?([a-z][a-z0-9]*)\b[^>]*>/gi,
+    commentsAndPhpTags = /<!--[\s\S]*?-->|<\?(?:php)?[\s\S]*?\?>/gi;
+  allowed = (((allowed || "") + "").toLowerCase().match(/<[a-z][a-z0-9]*>/g) || []).join('');
+  return input.replace(commentsAndPhpTags, '').replace(tags, function ($0, $1) {
+    return allowed.indexOf('<' + $1.toLowerCase() + '>') > -1 ? $0 : '';
+  });
+}
+
+function safeHtmlRenderer(instance, td, row, col, prop, value, cellProperties) {
+  var escaped = Handsontable.helper.stringify(value);
+  if (instance.getSettings().allowedTags) {
+    tags = instance.getSettings().allowedTags;
+  } else {
+    tags = '<em><b><strong><a><big>';
+  }
+  escaped = strip_tags(escaped, tags);
+  td.innerHTML = escaped;
+  return td;
+}
