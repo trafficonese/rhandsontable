@@ -600,7 +600,7 @@ hot_validate_numeric = function(hot, cols, min = NULL, max = NULL,
             value = '';
           }
           if (this.allowEmpty && value === '') {
-            return callback(true);
+            return callback(false);
           } else if (value === '') {
             return callback(false);
           }

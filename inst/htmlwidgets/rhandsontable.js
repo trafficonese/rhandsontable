@@ -34,7 +34,7 @@ HTMLWidgets.widget({
       instance.hot = new Handsontable(el, x);
       this.afterChangeCallback(x);
       this.afterCellMetaCallback(x);
-      this.afterRowAndColChange(x);
+      this.beforeCutCallback(x);
       if (x.selectCallback) {
         this.afterSelectCallback(x);
       }
@@ -65,20 +65,59 @@ HTMLWidgets.widget({
     };
   },
 
+  beforeCutCallback: function(x) {
+    x.beforeCut = function(data, coords) {
+      // Cut is disabled
+      return false;
+    };
+  },
+
   afterChangeCallback: function(x) {
     x.afterChange = function(changes, source) {
       if (HTMLWidgets.shinyMode) {
+
         if (changes && (changes[0][2] !== null || changes[0][3] !== null)) {
           if (this.sortIndex && this.sortIndex.length !== 0) {
             c = [this.sortIndex[changes[0][0]][0], changes[0].slice(1, 1 + 3)];
           } else {
             c = changes;
           }
-          Shiny.onInputChange(this.rootElement.id, {
+
+          // Can only be 1 row at a time
+          if (source == "edit") {
+            var obj = {
+              changerow: changes[0][0] +1,
+              changecol: changes[0][1] +1,
+              oldval: changes[0][2],
+              newval: changes[0][3]
+            };
+            // Wenn sich der Wert verändert hat, set Shiny Value ("tableID_edit")
+            if (obj.oldval !== obj.newval) {
+              Shiny.setInputValue(this.rootElement.id+"_edit", obj);
+            }
+          }
+          // Can be multi-row edit
+          if (source == "Autofill.fill") {
+            var obj = flattenArray(changes);
+            Shiny.setInputValue(this.rootElement.id+"_fill", obj);
+          }
+          // Can be multi-row edit
+          if (source == "UndoRedo.undo") {
+            var obj = flattenArray(changes);
+            Shiny.setInputValue(this.rootElement.id+"_undo", obj);
+          }
+          // Can be multi-row edit
+          if (source == "UndoRedo.redo") {
+            var obj = flattenArray(changes);
+            Shiny.setInputValue(this.rootElement.id+"_redo", obj);
+          }
+
+
+          /*Shiny.onInputChange(this.rootElement.id, {
             data: this.getData(),
             changes: { event: "afterChange", changes: c, source: source },
             params: this.params
-          });
+          });*/
         } else if (source == "loadData" && this.params) {
           Shiny.onInputChange(this.rootElement.id, {
             data: this.getData(),
@@ -91,8 +130,6 @@ HTMLWidgets.widget({
 
     // Used with editable tables. Is emitted after something is pasted in the table
     x.afterPaste = function(data, coords) {
-      //rhandsontable.getData()[startRow][startCol]
-      //console.log(this.getData()[coords[0].startRow][coords[0].startCol]);
       var obj = {
         startrow: coords[0].startRow+1,
         endrow: coords[0].endRow+1,
@@ -100,7 +137,6 @@ HTMLWidgets.widget({
         endcol: coords[0].endCol+1,
         vals: data
       };
-
       Shiny.setInputValue(this.rootElement.id+"_pasted", obj);
     };
   },
@@ -116,7 +152,6 @@ HTMLWidgets.widget({
       }
     };
   },
-
   afterSelectCallback: function(x) {
     x.afterSelectionEnd = function(r, c, r2, c2) {
       var r_all = [];
@@ -143,50 +178,6 @@ HTMLWidgets.widget({
       }
     };
   },
-
-  afterRowAndColChange: function(x) {
-    x.afterCreateRow = function(ind, ct) {
-      if (HTMLWidgets.shinyMode) {
-        if (this.params && this.params.columns) {
-          for(var i = 0, colCount = this.countCols(); i < colCount ; i++) {
-            this.setDataAtCell(ind, i, this.params.columns[i].default);
-          }
-        }
-        Shiny.onInputChange(this.rootElement.id, {
-          data: this.getData(),
-          changes: { event: "afterCreateRow", ind: ind, ct: ct },
-          params: this.params
-        });
-      }
-    };
-
-    x.afterRemoveRow = function(ind, ct) {
-      if (HTMLWidgets.shinyMode)
-        Shiny.onInputChange(this.rootElement.id, {
-          data: this.getData(),
-          changes: { event: "afterRemoveRow", ind: ind, ct: ct },
-          params: this.params
-        });
-    };
-
-    x.afterCreateCol = function(ind, ct) {
-      if (HTMLWidgets.shinyMode)
-        Shiny.onInputChange(this.rootElement.id, {
-          data: this.getData(),
-          changes: { event: "afterCreateCol", ind: ind, ct: ct },
-          params: this.params
-        });
-    };
-
-    x.afterRemoveCol = function(ind, ct) {
-      if (HTMLWidgets.shinyMode)
-        Shiny.onInputChange(this.rootElement.id, {
-          data: this.getData(),
-          changes: { event: "afterRemoveCol", ind: ind, ct: ct },
-          params: this.params
-        });
-    };
-  }
 });
 
 
@@ -198,6 +189,17 @@ function toArray(input) {
     });
   });
   return result;
+}
+
+function flattenArray(changes) {
+  var arr = {changerow:[], changecol:[], oldval:[], newval:[]};
+  for (var i=0; i < changes.length; i++) {
+  	arr.changerow.push(changes[i][0]+1);
+  	arr.changecol.push(changes[i][1]+1);
+  	arr.oldval.push(changes[i][2]);
+  	arr.newval.push(changes[i][3]);
+  }
+  return arr;
 }
 
 function csvString(instance, sep, dec) {
