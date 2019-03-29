@@ -1,8 +1,13 @@
 library(shiny)
+library(shinyjs)
 library(rhandsontable)
 
 ui <- {fluidPage(
+  useShinyjs(),
   rHandsontableOutput("tbl"),
+  actionButton("selectcells", "Select random cells"),
+  h4("Selected"),
+  verbatimTextOutput("selected"),
   h4("Edits"),
   verbatimTextOutput("edit"),
   h4("Paste"),
@@ -24,12 +29,37 @@ server <- function(input, output, session) {
       hot_table(highlightCol = TRUE, contextMenu = F, highlightRow = TRUE, stretchH = "all", overflow = "visible") %>%
       # hot_context_menu(allowColEdit = FALSE, allowRowEdit = FALSE) %>%
       # hot_context_menu(copy=TRUE) %>%
-      hot_col(col = "Sepal.Length", readOnly = TRUE) %>%
-      hot_col(col = "Sepal.Width", readOnly = TRUE) %>%
-      hot_col(col = "Petal.Length", readOnly = TRUE) %>%
+      hot_col(col = "Sepal.Length", readOnly = FALSE) %>%
+      hot_col(col = "Sepal.Width", readOnly = FALSE) %>%
+      hot_col(col = "Petal.Length", readOnly = FALSE) %>%
       hot_col(col = "Petal.Width", type = "numeric", readOnly = FALSE, allowInvalid = FALSE) %>%
-      hot_col(col = "Species", readOnly = TRUE) %>%
+      hot_col(col = "Species", readOnly = FALSE) %>%
       hot_validate_numeric(cols = 4, min = 0, max = 10000000000)
+  })
+
+  output$selected <- renderPrint({
+    # req(input$tbl_selected)
+    if (is.null(input$tbl_selected)) {
+      NULL
+    } else {
+      obj <- input$tbl_selected
+      print(paste("Slected Rows: ", paste(obj, collapse = ", ")))
+    }
+  })
+
+  observeEvent(input$selectcells, {
+
+    rows = sort(sample(x = 0:14, size = 4, replace = F))
+
+    editablecol = 3
+    hotjs <- "HTMLWidgets.getInstance(document.getElementById('tbl'))."
+    hotcels <- paste0("hot.selectCells([[",rows[1],", ",editablecol,", ",rows[2],", ",editablecol,"], ",
+                      "[",rows[3],", ",editablecol,", ",rows[4],", ",editablecol,"]]);")
+    cmd <- paste0(hotjs, hotcels)
+    print(cmd)
+    shinyjs::delay(200, shinyjs::runjs(HTML(cmd)))
+
+    # HTMLWidgets.getInstance(document.getElementById('tbl')).hot.selectCells([[1, 3, 6, 3], [9, 3, 13, 3]]);
   })
 
   output$edit <- renderPrint({
@@ -84,4 +114,13 @@ server <- function(input, output, session) {
 }
 
 shinyApp(ui, server)
+
+
+# var hot = HTMLWidgets.getInstance(document.getElementById('tbl'))
+# hot.hot.selectRows(1);
+# hot.hot.selectRows(1,4);
+# hot.hot.selectRows([[1,4],[6,7]]);
+# hot.hot.getSelected()
+## rostar/colstart/rowend/colend
+# hot.hot.selectCells([[0, 3, 2, 3],[5, 3, 8, 3]]);
 

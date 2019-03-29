@@ -41,6 +41,7 @@ HTMLWidgets.widget({
       instance.hot.params = x;
       instance.hot.updateSettings(x);
     }
+
   },
 
   resize: function(el, width, height, instance) {
@@ -102,14 +103,14 @@ HTMLWidgets.widget({
             Shiny.setInputValue(this.rootElement.id+"_fill", obj);
           }
           // Can be multi-row edit
-          if (source == "UndoRedo.undo") {
-            var obj = flattenArray(changes);
-            Shiny.setInputValue(this.rootElement.id+"_undo", obj);
-          }
-          // Can be multi-row edit
           if (source == "UndoRedo.redo") {
             var obj = flattenArray(changes);
             Shiny.setInputValue(this.rootElement.id+"_redo", obj);
+          }
+          // Can be multi-row edit
+          if (source == "UndoRedo.undo") {
+            var obj = flattenArray(changes);
+            Shiny.setInputValue(this.rootElement.id+"_undo", obj);
           }
 
 
@@ -155,16 +156,15 @@ HTMLWidgets.widget({
   afterSelectCallback: function(x) {
     x.afterSelectionEnd = function(r, c, r2, c2) {
       var r_all = [];
-      var c_all = [];
       if (HTMLWidgets.shinyMode) {
         if ( r2 < r ) { r2 = [r, r = r2][0]; }
         for ( var i=r; i <= r2; i++ ) {
           r_all.push( this.toPhysicalRow(i) + 1 );
         }
-        if ( c2 < c ) { c2 = [c, c = c2][0]; }
-        for ( var ii=c; ii <= c2; ii++ ) {
-          c_all.push( this.toPhysicalColumn(ii) + 1 );
-        }
+
+        Shiny.setInputValue(this.rootElement.id+"_selected", r_all);
+
+        /*
         Shiny.onInputChange(this.rootElement.id + "_select:rhandsontable.customSelectDeserializer", {
           data: this.getData(),
           select: { r: r + 1,
@@ -175,7 +175,12 @@ HTMLWidgets.widget({
                     cAll: c_all },
           params: this.params
         });
+        */
       }
+    };
+
+    x.afterDeselect = function() {
+      //Shiny.setInputValue(this.rootElement.id+"_selected", null);
     };
   },
 });
