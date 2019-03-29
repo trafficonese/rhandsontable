@@ -42,6 +42,8 @@ HTMLWidgets.widget({
       instance.hot.updateSettings(x);
     }
 
+    console.log("instance.hot.getSettings()");
+    console.log(instance.hot.getSettings());
   },
 
   resize: function(el, width, height, instance) {
@@ -141,7 +143,6 @@ HTMLWidgets.widget({
       Shiny.setInputValue(this.rootElement.id+"_pasted", obj);
     };
   },
-
   afterCellMetaCallback: function(x) {
     x.afterSetCellMeta = function(r, c, key, val) {
       if (HTMLWidgets.shinyMode && key === "comment") {
@@ -155,55 +156,14 @@ HTMLWidgets.widget({
   },
   afterSelectCallback: function(x) {
     x.afterSelectionEnd = function(r, c, r2, c2) {
-      console.log("r_all");
-      console.log(r_all);
-
-
-      var r_all = [];
-      if (HTMLWidgets.shinyMode) {
-        if ( r2 < r ) { r2 = [r, r = r2][0]; }
-        for ( var i=r; i <= r2; i++ ) {
-          r_all.push( this.toPhysicalRow(i) + 1 );
-        }
-
-
-
-        tblinst = $("#"+this.rootElement.id);
-        //console.log(tblinst);
-
-
-        //console.log("$('#"+this.rootElement.id+"')");
-        tblinst[0].addEventListener("keydown", function(e) {
-           console.log("addEventListener");
-           console.log(e);
-        });
-        /*
-        */
-        window.onkeydown = function(e) {
-           console.log(e);
-           var key = e.keyCode ? e.keyCode : e.which;
-           console.log(key);
-        };
-
-        Shiny.setInputValue(this.rootElement.id+"_selected", r_all);
-
-        /*
-        Shiny.onInputChange(this.rootElement.id + "_select:rhandsontable.customSelectDeserializer", {
-          data: this.getData(),
-          select: { r: r + 1,
-                    c: c + 1,
-                    r2: r2 + 1,
-                    c2: c2 + 1,
-                    rAll: r_all,
-                    cAll: c_all },
-          params: this.params
-        });
-        */
-      }
+      // Get selected rows (flatten array and get even element and add 1);
+      //var selrows = getEvenArray(this.getSelected());
+      var selrows = this.getSelected();
+      Shiny.setInputValue(this.rootElement.id+"_selected", selrows);
     };
 
     x.afterDeselect = function() {
-      //Shiny.setInputValue(this.rootElement.id+"_selected", null);
+      Shiny.setInputValue(this.rootElement.id+"_selected", null);
     };
   },
 });
@@ -217,6 +177,15 @@ function toArray(input) {
     });
   });
   return result;
+}
+
+function getEvenArray(array) {
+  ar = [];
+  var arflat = array.flat();
+  for(var i = 0; i < arflat.length; i += 2) {  // take every second element
+  	ar.push(arflat[i] + 1);
+  }
+  return(ar);
 }
 
 function flattenArray(changes) {

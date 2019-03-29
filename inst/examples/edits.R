@@ -2,8 +2,24 @@ library(shiny)
 library(shinyjs)
 library(rhandsontable)
 
+get_table_selection <- function(obj) {
+  ## Split at every 4th position
+  split4 <- length(obj)/4
+  numlist = split(obj, rep(1:split4, each=4))
+  rowres <- vector("list", split4)
+  for (i in 1:length(numlist)) {
+    ## Only Range is returned from rhandsontable
+    ## Subtract only odd elements (rowstart/rowend) and increase by 1
+    odds <- numlist[[i]][c(1,3)]+1
+    ## Make the selection sequence
+    rowres[[i]] <- odds[1]:odds[2]
+  }
+  sort(unique(unlist(rowres)))
+}
+
 ui <- {fluidPage(
   useShinyjs(),
+  actionButton("browse", "Browser"),
   rHandsontableOutput("tbl"),
   actionButton("selectcells", "Select random cells"),
   h4("Selected"),
@@ -21,10 +37,17 @@ ui <- {fluidPage(
 )}
 
 server <- function(input, output, session) {
+  observeEvent(input$browse, {browser()})
   output$tbl <- renderRHandsontable({
     iris$Petal.Width = 1:nrow(iris)
     iris <- iris[1:15,]
-    rhandsontable(iris, selectCallback = TRUE) %>%
+    rhandsontable(iris, selectCallback = TRUE,
+                  allowRemoveRow=FALSE, allowRemoveColumn=FALSE,
+                  allowInsertRow=FALSE, allowInsertColumn=FALSE,
+                  allowEmpty=FALSE, allowInvalid=FALSE
+                  ,autoColumnSize=FALSE, autoRowSize=FALSE,
+                  autoWrapCol=FALSE, autoWrapRow=FALSE
+                  ,dragToScroll=FALSE) %>%
       # hot_cols(columnSorting = TRUE) %>%
       hot_table(highlightCol = TRUE, contextMenu = F, highlightRow = TRUE, stretchH = "all", overflow = "visible") %>%
       # hot_context_menu(allowColEdit = FALSE, allowRowEdit = FALSE) %>%
@@ -42,8 +65,8 @@ server <- function(input, output, session) {
     if (is.null(input$tbl_selected)) {
       NULL
     } else {
-      obj <- input$tbl_selected
-      print(paste("Slected Rows: ", paste(obj, collapse = ", ")))
+      obj <- get_table_selection(input$tbl_selected)
+      print(paste("Selected Rows: ", paste(obj, collapse = ", ")))
     }
   })
 
