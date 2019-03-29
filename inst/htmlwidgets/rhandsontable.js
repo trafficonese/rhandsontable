@@ -155,12 +155,35 @@ HTMLWidgets.widget({
   },
   afterSelectCallback: function(x) {
     x.afterSelectionEnd = function(r, c, r2, c2) {
+      console.log("r_all");
+      console.log(r_all);
+
+
       var r_all = [];
       if (HTMLWidgets.shinyMode) {
         if ( r2 < r ) { r2 = [r, r = r2][0]; }
         for ( var i=r; i <= r2; i++ ) {
           r_all.push( this.toPhysicalRow(i) + 1 );
         }
+
+
+
+        tblinst = $("#"+this.rootElement.id);
+        //console.log(tblinst);
+
+
+        //console.log("$('#"+this.rootElement.id+"')");
+        tblinst[0].addEventListener("keydown", function(e) {
+           console.log("addEventListener");
+           console.log(e);
+        });
+        /*
+        */
+        window.onkeydown = function(e) {
+           console.log(e);
+           var key = e.keyCode ? e.keyCode : e.which;
+           console.log(key);
+        };
 
         Shiny.setInputValue(this.rootElement.id+"_selected", r_all);
 
