@@ -42,8 +42,8 @@ HTMLWidgets.widget({
       instance.hot.updateSettings(x);
     }
 
-    console.log("instance.hot.getSettings()");
-    console.log(instance.hot.getSettings());
+    //console.log("instance.hot.getSettings()");
+    //console.log(instance.hot.getSettings());
   },
 
   resize: function(el, width, height, instance) {

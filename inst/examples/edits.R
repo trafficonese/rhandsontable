@@ -46,6 +46,8 @@ server <- function(input, output, session) {
                   allowInsertRow=FALSE, allowInsertColumn=FALSE,
                   allowEmpty=FALSE, allowInvalid=FALSE
                   ,autoColumnSize=FALSE, autoRowSize=FALSE,
+                  manualRowMove =TRUE,manualColumnMove = TRUE,
+                  manualColumnResize=TRUE,
                   autoWrapCol=FALSE, autoWrapRow=FALSE
                   ,dragToScroll=FALSE) %>%
       # hot_cols(columnSorting = TRUE) %>%
