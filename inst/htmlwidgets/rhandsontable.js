@@ -94,6 +94,7 @@ HTMLWidgets.widget({
               oldval: changes[0][2],
               newval: changes[0][3]
             };
+            console.log(obj);
             // Wenn sich der Wert verändert hat, set Shiny Value ("tableID_edit")
             if (obj.oldval !== obj.newval) {
               Shiny.setInputValue(this.rootElement.id+"_edit", obj);
@@ -102,16 +103,21 @@ HTMLWidgets.widget({
           // Can be multi-row edit
           if (source == "Autofill.fill") {
             var obj = flattenArray(changes);
+            console.log(obj);
             Shiny.setInputValue(this.rootElement.id+"_fill", obj);
           }
           // Can be multi-row edit
           if (source == "UndoRedo.redo") {
             var obj = flattenArray(changes);
+            console.log("REDO");
+            console.log(obj);
             Shiny.setInputValue(this.rootElement.id+"_redo", obj);
           }
           // Can be multi-row edit
           if (source == "UndoRedo.undo") {
             var obj = flattenArray(changes);
+            console.log("UNDO");
+            console.log(obj);
             Shiny.setInputValue(this.rootElement.id+"_undo", obj);
           }
 
@@ -140,6 +146,7 @@ HTMLWidgets.widget({
         endcol: coords[0].endCol+1,
         vals: data
       };
+      console.log(obj);
       Shiny.setInputValue(this.rootElement.id+"_pasted", obj);
     };
   },
@@ -169,6 +176,8 @@ HTMLWidgets.widget({
 });
 
 
+
+// HELPER FUNCTIONS
 // https://stackoverflow.com/questions/22477612/converting-array-of-objects-into-array-of-arrays
 function toArray(input) {
   var result = input.map(function(obj) {
