@@ -41,9 +41,6 @@ HTMLWidgets.widget({
       instance.hot.params = x;
       instance.hot.updateSettings(x);
     }
-
-    //console.log("instance.hot.getSettings()");
-    //console.log(instance.hot.getSettings());
   },
 
   resize: function(el, width, height, instance) {
@@ -94,31 +91,27 @@ HTMLWidgets.widget({
               oldval: changes[0][2],
               newval: changes[0][3]
             };
-            console.log(obj);
             // Wenn sich der Wert verändert hat, set Shiny Value ("tableID_edit")
             if (obj.oldval !== obj.newval) {
-              Shiny.setInputValue(this.rootElement.id+"_edit", obj);
+              Shiny.setInputValue(this.rootElement.id+"_edit", obj, {priority: "event"});
             }
           }
           // Can be multi-row edit
           if (source == "Autofill.fill") {
-            var obj = flattenArray(changes);
-            console.log(obj);
-            Shiny.setInputValue(this.rootElement.id+"_fill", obj);
+            var obj1 = flattenArray(changes);
+            Shiny.setInputValue(this.rootElement.id+"_fill", obj1, {priority: "event"});
           }
           // Can be multi-row edit
           if (source == "UndoRedo.redo") {
-            var obj = flattenArray(changes);
-            console.log("REDO");
-            console.log(obj);
-            Shiny.setInputValue(this.rootElement.id+"_redo", obj);
+            return false;
+            //var obj = flattenArray(changes);
+            //Shiny.setInputValue(this.rootElement.id+"_redo", obj, {priority: "event"});
           }
           // Can be multi-row edit
           if (source == "UndoRedo.undo") {
-            var obj = flattenArray(changes);
-            console.log("UNDO");
-            console.log(obj);
-            Shiny.setInputValue(this.rootElement.id+"_undo", obj);
+            return false;
+            //var obj = flattenArray(changes);
+            //Shiny.setInputValue(this.rootElement.id+"_undo", obj, {priority: "event"});
           }
 
 
@@ -146,8 +139,7 @@ HTMLWidgets.widget({
         endcol: coords[0].endCol+1,
         vals: data
       };
-      console.log(obj);
-      Shiny.setInputValue(this.rootElement.id+"_pasted", obj);
+      Shiny.setInputValue(this.rootElement.id+"_pasted", obj, {priority: "event"});
     };
   },
   afterCellMetaCallback: function(x) {
@@ -164,14 +156,13 @@ HTMLWidgets.widget({
   afterSelectCallback: function(x) {
     x.afterSelectionEnd = function(r, c, r2, c2) {
       // Get selected rows (flatten array and get even element and add 1);
-      //var selrows = getEvenArray(this.getSelected());
       var selrows = this.getSelected();
       Shiny.setInputValue(this.rootElement.id+"_selected", selrows);
     };
 
-    x.afterDeselect = function() {
-      Shiny.setInputValue(this.rootElement.id+"_selected", null);
-    };
+    //x.afterDeselect = function() {
+      //Shiny.setInputValue(this.rootElement.id+"_selected", null);
+    //};
   },
 });
 
