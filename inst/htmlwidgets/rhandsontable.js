@@ -16,14 +16,14 @@ HTMLWidgets.widget({
         });
       }));
     }
-
     if (x.overflow) {
       $("#" + el.id).css('overflow', x.overflow);
     }
-
     if (x.rowHeaderWidth) {
       $("#" + el.id).css('col.rowHeader', x.rowHeaderWidth + 'px');
     }
+
+    x.outsideClickDeselects = false;
 
     this.params = x;
 
@@ -160,8 +160,8 @@ HTMLWidgets.widget({
       Shiny.setInputValue(this.rootElement.id+"_selected", selrows);
     };
 
-    //x.afterDeselect = function() {
-      //Shiny.setInputValue(this.rootElement.id+"_selected", null);
+    //x.afterDeselect = function(e) {
+    //  Shiny.setInputValue(this.rootElement.id+"_selected", null);
     //};
   },
 });
