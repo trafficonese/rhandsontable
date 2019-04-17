@@ -40,7 +40,7 @@ server <- function(input, output, session) {
   observeEvent(input$browse, {browser()})
   output$tbl <- renderRHandsontable({
     iris$Petal.Width = 1:nrow(iris)
-    iris <- iris[1:15,]
+    iris <- iris[1:15,c(1,1,2,3,4,5)]
     rhandsontable(iris, selectCallback = TRUE,
                   allowRemoveRow=FALSE, allowRemoveColumn=FALSE,
                   allowInsertRow=FALSE, allowInsertColumn=FALSE,

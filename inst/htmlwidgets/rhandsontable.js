@@ -132,12 +132,16 @@ HTMLWidgets.widget({
 
     // Used with editable tables. Is emitted after something is pasted in the table
     x.afterPaste = function(data, coords) {
+      //Get old values at column X (4)
+      oldvals = getValsRange(this, coords, 4);
+
       var obj = {
         startrow: coords[0].startRow+1,
         endrow: coords[0].endRow+1,
         startcol: coords[0].startCol+1,
         endcol: coords[0].endCol+1,
-        vals: data
+        vals: data,
+        oldvals: oldvals
       };
       Shiny.setInputValue(this.rootElement.id+"_pasted", obj, {priority: "event"});
     };
@@ -160,9 +164,9 @@ HTMLWidgets.widget({
       Shiny.setInputValue(this.rootElement.id+"_selected", selrows);
     };
 
-    //x.afterDeselect = function(e) {
-    //  Shiny.setInputValue(this.rootElement.id+"_selected", null);
-    //};
+    x.afterDeselect = function(e) {
+      Shiny.setInputValue(this.rootElement.id+"_selected", null);
+    };
   },
 });
 
@@ -170,6 +174,19 @@ HTMLWidgets.widget({
 
 // HELPER FUNCTIONS
 // https://stackoverflow.com/questions/22477612/converting-array-of-objects-into-array-of-arrays
+function getValsRange(x, coords, col) {
+  var ind = fillRange(coords[0].startRow, coords[0].endRow);
+  var oldvals = [];
+  for (var i = 0; i < ind.length; i++) {
+    oldvals.push(x.getDataAtCell(ind[i], col));
+  }
+  return oldvals;
+}
+
+function fillRange(start, end) {
+  return Array(end - start + 1).fill().map((item, index) => start + index);
+}
+
 function toArray(input) {
   var result = input.map(function(obj) {
     return Object.keys(obj).map(function(key) {
